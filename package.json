@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "html-minifier": "4.0.0",
+    "showdown": "2.1.0"
+  },
+  "devDependencies": {
+    "prettier": "3.3.2"
+  }
+}
