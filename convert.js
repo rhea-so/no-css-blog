@@ -1,6 +1,6 @@
 const FileSystem = require('fs');
-const MarkdownConverter = require('showdown').Converter;
 const minifyHTML = require('html-minifier').minify;
+const MarkdownConverter = require('showdown').Converter;
 
 // 이전 빌드로 인해 build 폴더가 이미 존재하면 삭제
 if (FileSystem.existsSync('./build')) {
@@ -10,49 +10,74 @@ if (FileSystem.existsSync('./build')) {
 // 결과물을 담기 위한 build 폴더 생성
 FileSystem.mkdirSync('./build');
 
-// 모든 Layout 파일을 읽어오기
-const indexLayout = FileSystem.readFileSync('./layouts/index.html', 'utf-8');
-const postLayout = FileSystem.readFileSync('./layouts/post.html', 'utf-8');
+function createIndexHtml() {
+  const layout = FileSystem.readFileSync('./layouts/index.html', 'utf-8');
 
-// 모든 Markdown 파일을 읽어와 HTML로 변환
-const markdownConverter = new MarkdownConverter({
-  noHeaderId: true,
-  simplifiedAutoLink: true,
-  parseImgDimensions: true,
-  tables: true,
-});
+  const items = [];
 
-for (const filename of FileSystem.readdirSync('./posts')) {
-  const markdown = FileSystem.readFileSync(`./posts/${filename}`, 'utf-8');
-  const html = markdownConverter.makeHtml(markdown);
-  const minifiedHTML = minifyHTML(postLayout.replace('<!-- TITLE -->', filename.replace('.md', '').substring(11)).replace('<!-- BODY -->', html), {
-    removeAttributeQuotes: true,
-    removeComments: true,
-    removeRedundantAttributes: true,
-    removeScriptTypeAttributes: true,
-    removeStyleLinkTypeAttributes: true,
-    sortClassName: true,
-    useShortDoctype: true,
-    collapseWhitespace: true,
-  });
+  for (const tag of FileSystem.readdirSync('./posts')) {
+    let item = `<h3>${tag}</h3><ul>`;
+    for (const post of FileSystem.readdirSync(`./posts/${tag}`).sort((a, b) => new Date(b.substring(0, 10)) - new Date(a.substring(0, 10)))) {
+      item += `<li><pre>${post.substring(0, 10)} <a href="/${tag}/${post.substring(11)}.html">${post.substring(11)}</a></pre></li>`;
+    }
+    item += '</ul>';
+    items.push(item);
+  }
 
-  FileSystem.writeFileSync(`./build/${filename.replace('.md', '.html')}`, minifiedHTML);
+  const index = layout.replace('<!-- INDEX -->', items.join(''));
+
+  FileSystem.writeFileSync(
+    './build/index.html',
+    minifyHTML(index, {
+      removeAttributeQuotes: true,
+      removeComments: true,
+      removeRedundantAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      sortClassName: true,
+      useShortDoctype: true,
+      collapseWhitespace: true,
+    }),
+  );
 }
 
-// 홈페이지의 index.html 생성
-const postList = FileSystem.readdirSync('./posts')
-  .sort((a, b) => new Date(b.substring(0, 10)) - new Date(a.substring(0, 10)))
-  .map((filename) => `<li><a href="./${filename.replace('.md', '.html')}">${filename.replace('.md', '')}</a></li>`);
+createIndexHtml();
 
-const minifiedIndexHTML = minifyHTML(indexLayout.replace('<!-- BODY -->', postList.join('')), {
-  removeAttributeQuotes: true,
-  removeComments: true,
-  removeRedundantAttributes: true,
-  removeScriptTypeAttributes: true,
-  removeStyleLinkTypeAttributes: true,
-  sortClassName: true,
-  useShortDoctype: true,
-  collapseWhitespace: true,
-});
+function createPostHtml() {
+  const layout = FileSystem.readFileSync('./layouts/post.html', 'utf-8');
 
-FileSystem.writeFileSync('./build/index.html', minifiedIndexHTML);
+  const markdownConverter = new MarkdownConverter({
+    noHeaderId: true,
+    simplifiedAutoLink: true,
+    parseImgDimensions: true,
+    tables: true,
+  });
+
+  for (const tag of FileSystem.readdirSync('./posts')) {
+    FileSystem.mkdirSync(`./build/${tag}`);
+    FileSystem.mkdirSync(`./build/${tag}/images`);
+    for (const post of FileSystem.readdirSync(`./posts/${tag}`)) {
+      const markdown = FileSystem.readFileSync(`./posts/${tag}/${post}/post.md`, 'utf-8');
+      const html = markdownConverter.makeHtml(markdown);
+      const minifiedHTML = minifyHTML(layout.replace('<!-- TITLE -->', post.substring(11)).replace('<!-- BODY -->', html), {
+        removeAttributeQuotes: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        sortClassName: true,
+        useShortDoctype: true,
+        collapseWhitespace: true,
+      });
+      FileSystem.writeFileSync(`./build/${tag}/${post.substring(11)}.html`, minifiedHTML);
+
+      if (FileSystem.existsSync(`./posts/${tag}/${post}/images`)) {
+        for (const image of FileSystem.readdirSync(`./posts/${tag}/${post}/images`)) {
+          FileSystem.copyFileSync(`./posts/${tag}/${post}/images/${image}`, `./build/${tag}/images/${image}`);
+        }
+      }
+    }
+  }
+}
+
+createPostHtml();
