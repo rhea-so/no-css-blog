@@ -1,6 +1,6 @@
 {
   "name": "no-css-blog",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A tool to generate a blog without CSS",
   "author": "rhea-so",
   "keywords": [
@@ -13,6 +13,7 @@
     "type": "git",
     "url": "https://github.com/rhea-so/no-css-blog"
   },
+  "license": "MIT",
   "devDependencies": {
     "prettier": "3.3.2"
   },
