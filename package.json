@@ -1,9 +1,23 @@
 {
-  "dependencies": {
-    "html-minifier": "4.0.0",
-    "showdown": "2.1.0"
+  "name": "no-css-blog",
+  "version": "0.1.2",
+  "description": "A tool to generate a blog without CSS",
+  "author": "rhea-so",
+  "keywords": [
+    "blog"
+  ],
+  "bin": {
+    "no-css-blog": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rhea-so/no-css-blog"
   },
   "devDependencies": {
     "prettier": "3.3.2"
+  },
+  "dependencies": {
+    "html-minifier": "4.0.0",
+    "showdown": "2.1.0"
   }
 }

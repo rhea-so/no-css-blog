@@ -1,5 +1,8 @@
+# 🚀 NO CSS BLOG
+
 ```sh
-node convert.js
-cd build
-python3 -m http.server
+npx no-css-blog
 ```
+
+> Please refer to the following link:  
+> https://github.com/rhea-so/no-css-blog/tree/main/test
